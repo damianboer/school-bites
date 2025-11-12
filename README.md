@@ -22,58 +22,13 @@ It enforces the **Demo 2** rules:
 ```bash
 docker compose up -d
 ```
-This starts a local Postgres at `localhost:5432` with DB `schoolbites` and loads schema + seed automatically.
-
-### 2) Install & run API
+Following that to seed the database run
 ```bash
-cd server
-cp .env.example .env
-npm install
-npm run dev
-```
-The API runs at `http://localhost:3001`.
-
-### 3) Try it (cURL)
-```bash
-# Create booking for seeded student on today's Chicken schedule
-curl -X POST "http://localhost:3001/api/bookings?userId=00000000-0000-0000-0000-000000000001"   -H "Content-Type: application/json"   -d '{"mealScheduleId":"aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaa1"}'
-
-# Duplicate same day -> 409 already_booked_this_day
+npx drizzle-kit push 
+npx tsx src/index.ts
 ```
 
-### 4) Svelte snippets
-Use files in `web/snippets` (BookingForm.svelte, BookingList.svelte, api.ts).  
-Wire them into your app’s route/page and pass `userId` and `validMealPlan` from your auth context.
-
-## Project layout
-```
-schoolbites-booking/
-├─ server/
-│  ├─ src/
-│  │  ├─ db/
-│  │  │  └─ schema.ts
-│  │  └─ index.ts
-│  ├─ migrations/
-│  │  ├─ schema.sql
-│  │  └─ seed.sql
-│  ├─ .env.example
-│  ├─ package.json
-│  ├─ tsconfig.json
-│  └─ docker-compose.yml  (in repo root)
-└─ web/
-   └─ snippets/
-      ├─ api.ts
-      ├─ BookingForm.svelte
-      └─ BookingList.svelte
-```
-
-## Environment
-
-Create `.env` in `server/`:
-```
-DATABASE_URL=postgres://postgres:postgres@localhost:5432/schoolbites
-PORT=3001
-```
+This starts a local Postgres at `localhost:5432` with DB `schoolbites`
 
 ## Notes for teammates
 

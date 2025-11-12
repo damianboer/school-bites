@@ -3,14 +3,13 @@ services:
     image: postgres:16
     restart: unless-stopped
     environment:
+      POSTGRES_USER: root
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: schoolbites
     ports:
       - "5432:5432"
     volumes:
-      - db_data:/var/lib/postgresql/data
-      - ./src/lib/server/migrations/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
-      - ./src/lib/server/migrations/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+      - db_data:/var/lib/postgresql
 
 volumes:
   db_data:
