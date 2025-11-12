@@ -9,8 +9,8 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./server/migrations/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
-      - ./server/migrations/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+      - ./src/lib/server/migrations/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./src/lib/server/migrations/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
 
 volumes:
   db_data:

@@ -1,5 +1,5 @@
 <script>
-  import { getMyBookings, cancelBooking } from './api.ts';
+  import { getMyBookings, cancelBooking } from '../api.ts';
   export let userId;
   let rows = [];
   let loading = true;

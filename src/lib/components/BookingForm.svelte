@@ -1,5 +1,5 @@
 <script>
-  import { createBooking } from './api.ts';
+  import { createBooking } from '../api.ts';
   export let userId;
   export let validMealPlan;
   export let todaysSchedules = []; // [{ id, serve_date, meal_name }]

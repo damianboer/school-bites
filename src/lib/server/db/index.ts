@@ -1,9 +1,9 @@
 import 'dotenv/config';
-import express from "express";
 import { z } from "zod";
+import express from "express";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
-import { bookings, users, mealSchedule } from "./db/schema.js";
+import { bookings, users, mealSchedule } from "./schema.ts";
 import { eq, and } from "drizzle-orm";
 
 const app = express();
