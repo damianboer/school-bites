@@ -27,9 +27,9 @@
         // goto different page by userType
         setTimeout(() => {
           if (result.user.userType === 'admin') {
-            goto('/admin');
+            goto('/dashboard');
           } else {
-            goto('/booking');
+            goto('/dashboard');
           }
         }, 1000);
       } else {

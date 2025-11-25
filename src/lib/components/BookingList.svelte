@@ -1,4 +1,5 @@
 <script>
+    import { onMount } from 'svelte';
   import { getMyBookings, cancelBooking } from '../api.ts';
   export let userId;
   let rows = [];
@@ -8,7 +9,9 @@
     rows = await getMyBookings(userId);
     loading=false;
   }
+  onMount(() => {
   load();
+  });
   async function cancel(id){
     await cancelBooking(userId,id);
     await load();
