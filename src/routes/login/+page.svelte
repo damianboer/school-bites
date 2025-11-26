@@ -1,4 +1,3 @@
-svelte
 <script>
   import { goto } from '$app/navigation';
 
@@ -28,9 +27,9 @@ svelte
         // goto different page by userType
         setTimeout(() => {
           if (result.user.userType === 'admin') {
-            goto('/dashboard');
+            goto('/admin');
           } else {
-            goto('/dashboard');
+            goto('/booking');
           }
         }, 1000);
       } else {
