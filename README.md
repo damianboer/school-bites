@@ -1,40 +1,41 @@
-# SchoolBites – Student Booking Service (Aquila)
+ # SchoolBites README
 
-This package is your **Demo 3** deliverable for **Student Booking System**. It includes:
-- PostgreSQL schema + seed
-- TypeScript Express API using **Drizzle ORM**
-- Svelte UI snippets (drop-in) for Booking form & list
-- Docker Compose for Postgres
+## Useful links
 
-It enforces the **Demo 2** rules:
-- Only **validated students** can book (`users.valid_meal_plan = true`).
-- **One booking per user per day** (unique constraint via `bookings (user_id, meal_schedule_id)`).
-
-> Matches your design document decisions (valid meal plan; `meal_schedule` as date↔meal; one-per-day).
+Drizzle ORM [here.](https://orm.drizzle.team/docs/overview)
+Tailwind Docs [here.](https://tailwindcss.com/docs/styling-with-utility-classes)
+Svelte Docs [here.](https://svelte.dev/docs/svelte/overview)
+Svelte Kit Docs [here.](https://svelte.dev/docs/kit/introduction) 
+Docker Download [here.](https://docs.docker.com/desktop/)
 
 ## Quick start
 
-### 0) Requirements
+### 1) Requirements
 - Node 20+
 - Docker & Docker Compose
 
-### 1) Start Postgres
+### 2) Start Postgres
 ```bash
 docker compose up -d
 ```
-Following that to seed the database run
-```bash
-npx drizzle-kit push 
-npx tsx src/index.ts
+
+### 3) Install Dependencies
 ```
+npm install
+```
+
+### 4) Run the Application
+```sh
+npm run dev
+
+# or start the server and open the app in a new browser tab
+npm run dev -- --open
+```
+
 
 This starts a local Postgres at `localhost:5432` with DB `schoolbites`
 
-## Notes for teammates
-
-- **Auth (Person 3 – Michael):** ensure `users` table includes `valid_meal_plan BOOLEAN` and attach user id to requests (cookie/header). Current server also accepts `?userId=` for local testing.
-- **Menus (Person 2 – Madalyn):** own CRUD for `meal_options` & `meal_schedule`. Booking service reads `meal_schedule` only.
-- **Tech Lead (Person 1 – Damian):** proxy `/api` from the web app to `localhost:3001`. Add deployment steps to the group README/ZIP.
-
-## License
-For course use.
+### 5) Access our Web Application using /login as Home Page (since /index has not been created yet)
+```
+http://localhost:5173/login
+```
