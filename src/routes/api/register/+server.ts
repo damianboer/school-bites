@@ -1,46 +1,66 @@
-import { json } from '@sveltejs/kit';
+// src/routes/api/register/+server.ts
+import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { createUser, findUserByUsername } from '$lib/auth';
+import { z } from 'zod';
+import { findUserByUsername, createUser } from '$lib/server/auth';
 
-export const POST: RequestHandler = async ({ request }) => {
+const RegisterSchema = z.object({
+  username: z.string().min(3),
+  password: z.string().min(4),          
+  schoolName: z.string().min(1),
+  userType: z.enum(['admin', 'user']),
+  adminName: z.string().optional(),
+  validMealPlan: z.boolean().optional()
+});
+
+export const POST: RequestHandler = async ({ request, cookies }) => {
+  let data;
   try {
-    const { username, password, schoolName, userType, adminName, validMealPlan } = await request.json();
-
-    // verify missing fields
-    if (!username || !password || !schoolName || !userType) {
-      return json({ error: 'Missing required fields' }, { status: 400 });
+    const body = await request.json();
+    const parsed = RegisterSchema.safeParse(body);
+    if (!parsed.success) {
+      return json(
+        { error: 'bad_request', details: parsed.error.flatten() },
+        { status: 400 }
+      );
     }
-
-    // verify adminName 验证用户类型特定字段
-    if (userType === 'admin' && !adminName) {
-      return json({ error: 'Admin name is required for admin users' }, { status: 400 });
-    }
-
-    // verify existing User name
-    const existingUser = await findUserByUsername(username);
-    if (existingUser) {
-      return json({ error: 'Username already exists' }, { status: 409 });
-    }
-
-    // createUser
-    const user = await createUser({
-      username,
-      password,
-      schoolName,
-      userType,
-      adminName,
-      validMealPlan
-    });
-
-    // return user json返回用户信息（不包含密码）
-    const { password: _, ...userWithoutPassword } = user;
-    return json({
-      message: 'User registered successfully',
-      user: userWithoutPassword
-    }, { status: 201 });
-
-  } catch (error) {
-    console.error('Registration error:', error);
-    return json({ error: 'Internal server error' }, { status: 500 });
+    data = parsed.data;
+  } catch (err) {
+    throw error(400, { message: 'invalid_json' });
   }
+
+  const existing = await findUserByUsername(data.username);
+  if (existing) {
+    return json(
+      { error: 'username_taken' },
+      { status: 409 }
+    );
+  }
+
+  const user = await createUser(data);
+
+  cookies.set(
+    'session',
+    JSON.stringify({
+      id: user.id,
+      userType: user.userType,
+      username: user.username
+    }),
+    {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 24 * 7
+    }
+  );
+
+  return json(
+    {
+      id: user.id,
+      username: user.username,
+      userType: user.userType,
+      schoolName: user.schoolName
+    },
+    { status: 201 }
+  );
 };

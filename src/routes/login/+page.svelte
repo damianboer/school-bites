@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { goto } from '$app/navigation';
 
   let formData = {
@@ -8,10 +8,12 @@
 
   let message = '';
   let isLoading = false;
+  let isError = false;
 
   async function handleLogin() {
     isLoading = true;
     message = '';
+    isError = false;
 
     try {
       const response = await fetch('/api/login', {
@@ -20,23 +22,31 @@
         body: JSON.stringify(formData)
       });
 
-      const result = await response.json();
+      let result: any = {};
+      try {
+        result = await response.json();
+      } catch {
+      }
 
       if (response.ok) {
         message = 'Login successful! Redirecting...';
-        // goto different page by userType
+        isError = false;
+
+        const user = result.user;
         setTimeout(() => {
-          if (result.user.userType === 'admin') {
+          if (user?.userType === 'admin') {
             goto('/admin');
           } else {
             goto('/booking');
           }
         }, 1000);
       } else {
-        message = result.error || 'Login failed';
+        message = result?.error || 'Login failed';
+        isError = true;
       }
-    } catch (error) {
-      message = 'Network error: ' + error.message;
+    } catch (error: any) {
+      message = 'Network error: ' + (error?.message ?? 'unknown');
+      isError = true;
     } finally {
       isLoading = false;
     }
@@ -73,7 +83,7 @@
   </form>
 
   {#if message}
-    <div class:success={!message.includes('error')} class:error={message.includes('error')}>
+    <div class:success={!isError} class:error={isError}>
       {message}
     </div>
   {/if}
@@ -82,7 +92,6 @@
 </div>
 
 <style>
-
   .container {
     max-width: 400px;
     margin: 50px auto;

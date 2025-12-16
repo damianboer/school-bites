@@ -2,18 +2,22 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { z } from 'zod';
 import { db } from '$lib/server/db';
-import { mealSchedule } from '$lib/server/db/schema';
+import { mealOptions } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 
-const scheduleUpdateSchema = z.object({
-  serveDate: z.string().optional(),
-  mealOptionId: z.string().uuid().optional()
+const mealOptionUpdateSchema = z.object({
+  name: z.string().optional(),
+  description: z.string().optional().nullable(),
+  priceCents: z.number().int().nonnegative().optional(),
+  dietaryTags: z.array(z.string()).optional(),
+  isAvailable: z.boolean().optional(),
+  ingredientCostCents: z.number().int().nonnegative().optional()
 });
 
 export const PUT: RequestHandler = async ({ params, request }) => {
   const id = params.id;
   const body = await request.json();
-  const parsed = scheduleUpdateSchema.safeParse(body);
+  const parsed = mealOptionUpdateSchema.safeParse(body);
 
   if (!parsed.success) {
     return json(
@@ -23,9 +27,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
   }
 
   const [updated] = await db
-    .update(mealSchedule)
+    .update(mealOptions)
     .set(parsed.data)
-    .where(eq(mealSchedule.id, id))
+    .where(eq(mealOptions.id, id))
     .returning();
 
   if (!updated) {
@@ -39,8 +43,8 @@ export const DELETE: RequestHandler = async ({ params }) => {
   const id = params.id;
 
   const [deleted] = await db
-    .delete(mealSchedule)
-    .where(eq(mealSchedule.id, id))
+    .delete(mealOptions)
+    .where(eq(mealOptions.id, id))
     .returning();
 
   if (!deleted) {

@@ -1,33 +1,46 @@
-
+// src/routes/api/schedules/+server.ts
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
+import { z } from 'zod';
 import { db } from '$lib/server/db';
-import { mealSchedule, mealOptions, bookings } from '$lib/server/db/schema';
+import { mealSchedule, mealOptions } from '$lib/server/db/schema';
+import { eq } from 'drizzle-orm';
 
-import { json } from "@sveltejs/kit";
-import { eq, sql } from "drizzle-orm";
+const scheduleSchema = z.object({
+  serveDate: z.string(),        
+  mealOptionId: z.string().uuid()
+});
 
-export async function GET() {
+export const GET: RequestHandler = async () => {
   const rows = await db
     .select({
       id: mealSchedule.id,
       serveDate: mealSchedule.serveDate,
-      mealName: mealOptions.name,
-      bookingCount: sql`COUNT(${bookings.id})`
+      mealOptionId: mealSchedule.mealOptionId,
+      mealName: mealOptions.name
     })
     .from(mealSchedule)
-    .leftJoin(mealOptions, eq(mealSchedule.mealOptionId, mealOptions.id))
-    .leftJoin(bookings, eq(bookings.mealScheduleId, mealSchedule.id))
-    .groupBy(mealSchedule.id, mealOptions.name);
+    .leftJoin(mealOptions, eq(mealSchedule.mealOptionId, mealOptions.id));
 
   return json(rows);
-}
+};
 
-export async function POST({ request }) {
-  const { mealOptionId, serveDate } = await request.json();
 
-  await db.insert(mealSchedule).values({
-    mealOptionId,
-    serveDate: serveDate
-  });
+export const POST: RequestHandler = async ({ request }) => {
+  const body = await request.json();
+  const parsed = scheduleSchema.safeParse(body);
 
-  return json({ ok: true });
-}
+  if (!parsed.success) {
+    return json(
+      { error: 'bad_request', details: parsed.error.flatten() },
+      { status: 400 }
+    );
+  }
+
+  const [created] = await db
+    .insert(mealSchedule)
+    .values(parsed.data)
+    .returning();
+
+  return json(created, { status: 201 });
+};

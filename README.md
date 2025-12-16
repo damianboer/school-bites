@@ -1,30 +1,23 @@
- # SchoolBites README
+# sv
 
-## Useful links
+Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
-Drizzle ORM [here.](https://orm.drizzle.team/docs/overview)
-Tailwind Docs [here.](https://tailwindcss.com/docs/styling-with-utility-classes)
-Svelte Docs [here.](https://svelte.dev/docs/svelte/overview)
-Svelte Kit Docs [here.](https://svelte.dev/docs/kit/introduction) 
-Docker Download [here.](https://docs.docker.com/desktop/)
+## Creating a project
 
-## Quick start
+If you're seeing this, you've probably already done this step. Congrats!
 
-### 1) Requirements
-- Node 20+
-- Docker & Docker Compose
+```sh
+# create a new project in the current directory
+npx sv create
 
-### 2) Start Postgres
-```bash
-docker compose up -d
+# create a new project in my-app
+npx sv create my-app
 ```
 
-### 3) Install Dependencies
-```
-npm install
-```
+## Developing
 
-### 4) Run the Application
+Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+
 ```sh
 npm run dev
 
@@ -32,10 +25,14 @@ npm run dev
 npm run dev -- --open
 ```
 
+## Building
 
-This starts a local Postgres at `localhost:5432` with DB `schoolbites`
+To create a production version of your app:
 
-### 5) Access our Web Application using /login as Home Page (since /index has not been created yet)
+```sh
+npm run build
 ```
-http://localhost:5173/login
-```
+
+You can preview the production build with `npm run preview`.
+
+> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.

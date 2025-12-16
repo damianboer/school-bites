@@ -5,20 +5,13 @@ export const users = pgTable('users', {
   username: varchar('username').notNull().unique(),
   password: varchar('password').notNull(),
   schoolName: varchar('school_name').notNull(),
-  userType: varchar('user_type').notNull().default('user'), // 'admin' 或 'user'
-  adminName: varchar('admin_name'), // only for admin
-  validMealPlan: boolean('valid_meal_plan').default(false), // only for user
+  userType: varchar('user_type').notNull().default('user'), 
+  adminName: varchar('admin_name'), 
+  validMealPlan: boolean('valid_meal_plan').default(false), 
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 export const bookingStatus = pgEnum("booking_status", ['PENDING','CONFIRMED','CANCELLED']);
-
-/*export const users = pgTable("users", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  email: text("email").notNull(),
-  role: text("role").notNull(),
-  validMealPlan: boolean("valid_meal_plan").notNull().default(false),
-});*/
 
 export const mealOptions = pgTable("meal_options", {
   id: uuid("id").primaryKey().defaultRandom(),
