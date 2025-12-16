@@ -13,9 +13,6 @@
     updateMealOption,
 
     deleteMealOption
-
-
-
   } from "../../lib/api";
 
   let schedules = [];
@@ -36,6 +33,80 @@
   };
 
   let editingSchedule: any = null;
+
+  const money = (cents: number) =>
+    (cents / 100).toLocaleString(undefined, { style: "currency", currency: "USD" });
+
+  type MealStat = {
+    mealOptionId: string;
+    name: string;
+    bookings: number;
+    revenueCents: number;
+    costCents: number;
+    profitCents: number;
+  };
+
+  $: mealById = new Map(mealOptions.map((m) => [m.id, m]));
+
+  $: mealStats = (() => {
+    const map = new Map<string, MealStat>();
+
+    for (const s of schedules) {
+      const mealId = s.mealOptionId;
+      if (!mealId) continue;
+
+      const meal = mealById.get(mealId);
+      const name = s.mealName ?? meal?.name ?? "Unknown meal";
+
+      const bookings = Number(s.bookingCount ?? 0);
+
+      const priceCents = Number(meal?.priceCents ?? 0);
+      const ingredientCostCents = Number(meal?.ingredientCostCents ?? 0);
+
+      const revenueCents = priceCents * bookings;
+      const costCents = ingredientCostCents * bookings;
+      const profitCents = revenueCents - costCents;
+
+      const prev = map.get(mealId);
+      if (prev) {
+        prev.bookings += bookings;
+        prev.revenueCents += revenueCents;
+        prev.costCents += costCents;
+        prev.profitCents += profitCents;
+      } else {
+        map.set(mealId, {
+          mealOptionId: mealId,
+          name,
+          bookings,
+          revenueCents,
+          costCents,
+          profitCents
+        });
+      }
+    }
+
+    return Array.from(map.values()).sort((a, b) => b.bookings - a.bookings);
+  })();
+
+  $: totals = mealStats.reduce(
+    (acc, m) => {
+      acc.bookings += m.bookings;
+      acc.revenueCents += m.revenueCents;
+      acc.costCents += m.costCents;
+      acc.profitCents += m.profitCents;
+      return acc;
+    },
+    { bookings: 0, revenueCents: 0, costCents: 0, profitCents: 0 }
+  );
+
+  $: profitMargin = totals.revenueCents > 0 ? totals.profitCents / totals.revenueCents : 0;
+
+  $: mostPopularMeal = mealStats[0] ?? null;
+
+  $: mostProfitableMeal = (() => {
+    if (mealStats.length === 0) return null;
+    return [...mealStats].sort((a, b) => b.profitCents - a.profitCents)[0];
+  })();
 
   async function load() {
     loading = true;
@@ -132,7 +203,78 @@
 {#if loading}
   <p>Loading…</p>
 {:else}
+  <h2 class="text-xl font-semibold mb-2 mt-4">Statistics</h2>
 
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="p-4 border rounded">
+      <div class="text-sm opacity-70">Total Bookings</div>
+      <div class="text-2xl font-bold">{totals.bookings}</div>
+    </div>
+
+    <div class="p-4 border rounded">
+      <div class="text-sm opacity-70">Revenue</div>
+      <div class="text-2xl font-bold">{money(totals.revenueCents)}</div>
+      <div class="text-sm opacity-70 mt-1">Ingredient Cost: {money(totals.costCents)}</div>
+    </div>
+
+    <div class="p-4 border rounded">
+      <div class="text-sm opacity-70">Profit</div>
+      <div class="text-2xl font-bold">{money(totals.profitCents)}</div>
+      <div class="text-sm opacity-70 mt-1">Margin: {(profitMargin * 100).toFixed(1)}%</div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <div class="p-4 border rounded">
+      <div class="text-sm opacity-70">Most Popular Meal</div>
+      {#if mostPopularMeal}
+        <div class="text-lg font-semibold">{mostPopularMeal.name}</div>
+        <div class="text-sm">Bookings: {mostPopularMeal.bookings}</div>
+      {:else}
+        <div class="text-sm">No data yet.</div>
+      {/if}
+    </div>
+
+    <div class="p-4 border rounded">
+      <div class="text-sm opacity-70">Most Profitable Meal</div>
+      {#if mostProfitableMeal}
+        <div class="text-lg font-semibold">{mostProfitableMeal.name}</div>
+        <div class="text-sm">
+          Profit: {money(mostProfitableMeal.profitCents)} (Bookings: {mostProfitableMeal.bookings})
+        </div>
+      {:else}
+        <div class="text-sm">No data yet.</div>
+      {/if}
+    </div>
+  </div>
+
+  {#if mealStats.length > 0}
+    <div class="p-4 border rounded mb-8">
+      <h3 class="font-semibold mb-2">Meal Performance</h3>
+      <table class="border w-full">
+        <thead>
+          <tr>
+            <th class="border px-2 py-1 text-left">Meal</th>
+            <th class="border px-2 py-1 text-right">Bookings</th>
+            <th class="border px-2 py-1 text-right">Revenue</th>
+            <th class="border px-2 py-1 text-right">Cost</th>
+            <th class="border px-2 py-1 text-right">Profit</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each mealStats as ms}
+            <tr>
+              <td class="border px-2 py-1">{ms.name}</td>
+              <td class="border px-2 py-1 text-right">{ms.bookings}</td>
+              <td class="border px-2 py-1 text-right">{money(ms.revenueCents)}</td>
+              <td class="border px-2 py-1 text-right">{money(ms.costCents)}</td>
+              <td class="border px-2 py-1 text-right">{money(ms.profitCents)}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
+  {/if}
 
   <h2 class="text-xl font-semibold mb-2 mt-4">Meal Options</h2>
 
@@ -202,8 +344,6 @@
   {/if}
 
   <hr class="my-6">
-
-
 
   <h2 class="text-xl font-semibold mb-2">Upcoming Meal Schedules</h2>
 
@@ -289,5 +429,4 @@
       </button>
     </div>
   {/if}
-
 {/if}

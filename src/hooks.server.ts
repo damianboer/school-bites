@@ -23,7 +23,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   const { pathname } = event.url;
 
-  const publicRoutes = ['/login', '/register'];
+  const publicRoutes = ['/login', '/register', "/api/login", "/api/register"];
 
   const isPublic = publicRoutes.some((p) => pathname.startsWith(p));
 
